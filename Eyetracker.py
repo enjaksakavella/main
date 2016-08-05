@@ -12,6 +12,7 @@ class Eyetracker:
 		self.pupil = (0,0)
 		self.img = None
 		self.blink_value = 0
+		self.blink = False
 		
 	def takeSnapShot(self,gray = False, blurr = False):
 		ret, frame = self.cam.read()
@@ -23,18 +24,18 @@ class Eyetracker:
 
 		
 	def detectBlink(self):
-		start = time.time()
-		while True:
-			x,y,w,h = self.eyeRec[0],self.eyeRec[1],self.eyeRec[2],self.eyeRec[3]
-			frame = self.takeSnapShot(gray = True, blurr = True)
-			ret, thresh = cv2.threshold(frame[y:(y+h),x:(x+w)],70,250,cv2.THRESH_BINARY)
-			thresh = cv2.erode(thresh,np.ones((15,15),np.uint8),iterations =4)
-			cv2.imshow('blinkdetection',thresh)
-			#print(cv2.countNonZero(thresh))
+		x,y,w,h = self.eyeRec[0],self.eyeRec[1],self.eyeRec[2],self.eyeRec[3]
+		frame = self.takeSnapShot(gray = True, blurr = True)
+		ret, thresh = cv2.threshold(frame[y:(y+h),x:(x+w)],70,250,cv2.THRESH_BINARY)
+		thresh = cv2.erode(thresh,np.ones((15,15),np.uint8),iterations =4)
+		cv2.imshow('blinkdetection',thresh)
+		#print(cv2.countNonZero(thresh))
 
-			if cv2.countNonZero(thresh) <= self.blink_value:
-				end = time.time()
-				return end-start
+		if cv2.countNonZero(thresh) >= self.blink_value:
+			self.blink = True
+			return True
+		self.blink = False
+		return False
 		
 	def getBoundingRectangle(self):
 		frame = self.takeSnapShot(gray = True, blurr = True)
@@ -101,10 +102,16 @@ class Eyetracker:
 		self.center = self.pupil
 				
 	def draw(self):
-		x,y = self.eyeRec[0],self.eyeRec[1]
 		frame = self.takeSnapShot()
-		cv2.circle(frame,(int(self.pupil[0]),int(self.pupil[1])),int(10),(0,0,255),2)
+		if self.blink:
+			string = "BLINK"
+		else:
+			cv2.circle(frame,(int(self.pupil[0]),int(self.pupil[1])),int(10),(0,0,255),2)
+			string = str(self.pupil[0]-self.center[0])
+		x,y = self.eyeRec[0],self.eyeRec[1]
+		
+		
 		font = cv2.FONT_HERSHEY_SIMPLEX
-		cv2.putText(frame,str(self.pupil[0]-self.center[0]),(x,y), font, 1,(255,255,255),2)
+		cv2.putText(frame,string,(x,y), font, 1,(255,255,255),2)
 		cv2.line(frame,(self.center[0],self.center[1]-100),(self.center[0],self.center[1]+100),(255,0,0),5)
 		cv2.imshow('img1',frame)

@@ -2,17 +2,12 @@ from Eyetracker import Eyetracker
 import cv2
 import serial
 import threading
+import time
 
 
-def detectingLoop(t):
-	while True:
-		if t.detectBlink():
-			print("blink")
-			a = 0
-		t.trackPupil()
+
 
 def main():
-	#print(threading.active_count())
 	try:
 		ser = serial.Serial('/dev/ttyACM0',115200) # TODO: korjaa
 	except serial.serialutil.SerialException as e:
@@ -24,25 +19,42 @@ def main():
 	
 	print(tracker.blink_value)
 	
-	#tracking_thread = threading.Thread(target = detectingLoop(tracker))
-	#print(threading.active_count())
-	#tracking_thread.start()
-	
+	maxRotationVal = 40
+	minRotationVal = -40
+	start = time.time()
+	end = time.time()
+	blinktimer = 0
 	while True:
 		
-		t = tracker.detectBlink()
+		'''t = tracker.detectBlink()
 		if (t > 0.5):
-			print("Long blink detected:",t)
-
-		tracker.trackPupil()
-		dist = tracker.pupil[0]- tracker.center[1]
-		#print(dist)
-		if dist > 30:
-			dist = 30
-		if dist < -30:
-			dist = -30
+			print("Long blink detected:",t)'''
 		
-		i = 190+dist
+		end = time.time()
+		dt = end-start
+		if tracker.detectBlink():
+			blinktimer += dt
+		else:
+			blinktimer = 0
+		start = time.time()
+		
+		if blinktimer > 1:
+			print(blinktimer)
+		
+		tracker.trackPupil()
+		dist = tracker.pupil[0]- tracker.center[0]
+		if dist > maxRotationVal:
+			dist = maxRotationVal
+		if dist < minRotationVal:
+			dist = minRotationVal
+		
+		#print(dist)
+		i = 85
+		if dist < 0:
+			i = i - 21*dist/minRotationVal
+		if dist > 0:
+			i = i + 26*dist/maxRotationVal
+			
 		#ser.write(i)
 		
 		#print(i)
