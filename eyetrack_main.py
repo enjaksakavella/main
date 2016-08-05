@@ -24,6 +24,8 @@ def main():
 	start = time.time()
 	end = time.time()
 	blinktimer = 0
+	forwardmode = False
+	
 	while True:
 		
 		'''t = tracker.detectBlink()
@@ -38,22 +40,34 @@ def main():
 			blinktimer = 0
 		start = time.time()
 		
-		if blinktimer > 1:
-			print(blinktimer)
+		print(blinktimer)
+		if blinktimer > 0.5:
+			if forwardmode:
+				forwardmode = False
+			else:
+				forwardmode = True
+			blinktimer = 0
+		r = 85
+		f = 85
 		
-		tracker.trackPupil()
-		dist = tracker.pupil[0]- tracker.center[0]
-		if dist > maxRotationVal:
-			dist = maxRotationVal
-		if dist < minRotationVal:
-			dist = minRotationVal
-		
-		#print(dist)
-		i = 85
-		if dist < 0:
-			i = i - 21*dist/minRotationVal
-		if dist > 0:
-			i = i + 26*dist/maxRotationVal
+		if not tracker.blink:
+			tracker.trackPupil()
+			dist = tracker.pupil[0]- tracker.center[0]
+			if dist > maxRotationVal:
+				dist = maxRotationVal
+			if dist < minRotationVal:
+				dist = minRotationVal
+
+			#print(dist)
+			i = 85
+			if dist < 0:
+				i = i - 21*dist/minRotationVal
+			if dist > 0:
+				i = i + 26*dist/maxRotationVal
+			if forwardmode:
+				print("FORWAAAAAARD")
+				f = 100
+			
 			
 		#ser.write(i)
 		
