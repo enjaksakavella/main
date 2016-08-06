@@ -1,0 +1,65 @@
+// the setup function runs once when you press reset or power the board
+void setup() {
+  // initialize pins DAC0 and DAC1 as an output.
+  pinMode(8, OUTPUT); // pin for forward - backward axis movement
+  pinMode(9, OUTPUT); // pin for left - right axis movement
+  // initialize serial port as input
+  SerialUSB.begin(115200);
+  
+}
+
+// the loop function runs over and over again forever
+void loop() {
+
+  char bfmovement; // value for forward - backward axis voltage
+  char lrmovement; // value for left - right axis voltage
+
+  delay(100);  
+  
+  if (SerialUSB.available() > 0) {
+    
+                // read the incoming byte:
+                char incomingByte = SerialUSB.read();
+
+                if (incomingByte < 128) { // byte is backward - forward axis data
+                  
+                  if (incomingByte < 57) {
+                    bfmovement += (26*(64-incomingByte))/64;
+                  }
+                  else if (incomingByte > 73) {
+                    bfmovement -= (21*(64-incomingByte))/64;
+                  }
+                  else {
+                    bfmovement = 85;
+                  }
+                  analogWrite(8,(char) bfmovement);
+                }
+
+                
+                else if (incomingByte >= 128) { // byte is left - right axis data
+
+                  char multiplier = (incomingByte - 128);
+
+                  if (multiplier < 57) {
+                    lrmovement -= (21*(64-multiplier))/64;
+                  }
+
+                  else if (multiplier > 73) {
+                    lrmovement += (26*(64-multiplier))/64;
+                  }
+
+                  else {
+                    lrmovement = 85;
+                  }
+                  analogWrite(9,(char) lrmovement);
+                  
+                 }
+  }
+  if (SerialUSB.available() == 0) { // if no data comes from the serial port the wheel chair should not move
+
+    analogWrite(8,85); // sends voltage that results in no movement
+
+    analogWrite(9,85); // sends voltage that results in no movement
+    
+  }
+}
