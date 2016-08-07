@@ -9,18 +9,18 @@ import time
 
 def main():
 	try:
-		ser = serial.Serial('/dev/ttyACM0',115200) # TODO: korjaa
+		ser = serial.Serial('/dev/ttyACM0',115200)
 	except serial.serialutil.SerialException as e:
-		print(e)
+		pass
 	
 	tracker = Eyetracker()
 	tracker.getBoundingRectangle()
 	tracker.calibrate()
 	
-	#print(tracker.blink_value)
-	
 	maxRotationVal = 40
 	minRotationVal = -40
+	
+	
 	start = time.time()
 	end = time.time()
 	blinktimer = 0
@@ -28,9 +28,6 @@ def main():
 	
 	while True:
 		
-		'''t = tracker.detectBlink()
-		if (t > 0.5):
-			print("Long blink detected:",t)'''
 		
 		end = time.time()
 		dt = end-start
@@ -40,7 +37,6 @@ def main():
 			blinktimer = 0
 		start = time.time()
 		
-		#print(blinktimer)
 		if blinktimer > 0.5:
 			if forwardmode:
 				forwardmode = False
@@ -58,7 +54,6 @@ def main():
 			if dist < minRotationVal:
 				dist = minRotationVal
 
-			#print(dist)
 			if dist < 0:
 				r = r - 63*dist/minRotationVal
 			if dist > 0:
@@ -71,7 +66,7 @@ def main():
 		#ser.write(chr(r))
 		#ser.write(chr(f))
 		
-		print(r)
+		#print(r)
 		tracker.draw()
 		
 		if cv2.waitKey(1) & 0xFF == ord('q'):
